@@ -1,8 +1,6 @@
 import sqlite3
 import functools
 from datetime import datetime
-import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 #### decorator to lof SQL queries
 
 def log_queries(func):
@@ -10,7 +8,7 @@ def log_queries(func):
     def wrapper(*args, **kwargs):
         query = args[0] if args else kwargs.get('query', '')
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        logging.info(f"Executing query at {timestamp}: {query}")
+        print(f"[{timestamp}] - Executing query: {query}")
         return func(*args, **kwargs)
     return wrapper
 
