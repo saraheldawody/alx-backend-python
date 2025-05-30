@@ -8,7 +8,6 @@ from parameterized import parameterized
 from client import GithubOrgClient
 from utils import get_json
 
-
 class TestGithubOrgClient(unittest.TestCase):
     """Test cases for GithubOrgClient class."""
 
@@ -21,7 +20,7 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         Test that GithubOrgClient.org returns the correct value.
         This method uses parameterized tests to check that the org method
-        returns the expected organization data.
+        returns the expected organization data without making external HTTP calls.
         """
         mock_get_json.return_value = {
             "name": org_name,
@@ -85,6 +84,19 @@ class TestGithubOrgClient(unittest.TestCase):
             mock_pub_url.assert_called_once_with()
             mock_get_json.assert_called_once_with(fake_url)
             self.assertEqual(repos, ["repo1", "repo2", "repo3"])
+
+    @parameterized.expand([
+        ({"license": {"key": "my_license"}}, "my_license", True),
+        ({"license": {"key": "other_license"}}, "my_license", False),
+    ])
+    def test_has_license(self, repo: dict, license_key: str, expected: bool) -> None:
+        """
+        Test that GithubOrgClient.has_license correctly identifies
+        whether a given repo dict contains the specified license key.
+        """
+        client = GithubOrgClient("irrelevant_org")
+        result = client.has_license(repo, license_key)
+        self.assertEqual(result, expected)
 
 
 if __name__ == '__main__':
