@@ -18,7 +18,7 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         Test that GithubOrgClient.org returns the correct value.
         This method uses parameterized tests to check that the org method
-        returns the expected organization data without making external HTTP calls.
+        returns the expected organization data.
         """
         mock_get_json.return_value = {
             "name": org_name,
