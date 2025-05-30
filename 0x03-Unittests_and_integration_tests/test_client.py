@@ -5,6 +5,7 @@ from parameterized import parameterized
 from client import GithubOrgClient
 from utils import get_json
 
+
 class TestGithubOrgClient(unittest.TestCase):
     """Test cases for GithubOrgClient class."""
 
@@ -81,6 +82,7 @@ class TestGithubOrgClient(unittest.TestCase):
             mock_pub_url.assert_called_once_with()
             mock_get_json.assert_called_once_with(fake_url)
             self.assertEqual(repos, ["repo1", "repo2", "repo3"])
+
 
 if __name__ == '__main__':
     unittest.main()
