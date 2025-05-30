@@ -16,7 +16,13 @@ from utils import (
 
 
 class TestAccessNestedMap(unittest.TestCase):
-    """Test cases for access_nested_map."""
+    """
+    Test cases for access_nested_map function.
+    This class inherits from unittest.TestCase and uses parameterized tests
+    to check various scenarios of accessing nested maps.
+    It tests the function with different nested map structures and paths
+    to ensure it returns the expected values.
+    """
 
     @parameterized.expand([
         ({"a": 1}, ("a",), 1),
@@ -29,6 +35,11 @@ class TestAccessNestedMap(unittest.TestCase):
         path: Sequence,
         expected: Any
     ) -> None:
+        """
+        Test access_nested_map with various inputs.
+        This method uses parameterized tests to check that the function
+        returns the expected result for different nested map structures
+        """
         self.assertEqual(
             access_nested_map(nested_map, path),
             expected
@@ -44,6 +55,12 @@ class TestAccessNestedMap(unittest.TestCase):
         path: Sequence,
         expected_msg: str
     ) -> None:
+        """
+        Test access_nested_map with invalid paths.
+        This method uses parameterized tests to check that the function
+        raises a KeyError with the expected message when trying to access
+        a key that does not exist in the nested map.
+        """
         with self.assertRaises(KeyError) as ctx:
             access_nested_map(nested_map, path)
 
@@ -54,7 +71,13 @@ class TestAccessNestedMap(unittest.TestCase):
 
 
 class TestGetJson(unittest.TestCase):
-    """Test cases for get_json function."""
+    """
+    Test cases for get_json function.
+    This class inherits from unittest.TestCase and uses parameterized tests
+    to check the behavior of the function when fetching JSON data from URLs.
+    It mocks the requests.get method to simulate different responses
+    and checks that the function returns the expected JSON data.
+    """
 
     @parameterized.expand([
         ("http://example.com", {"payload": True}),
@@ -65,6 +88,12 @@ class TestGetJson(unittest.TestCase):
         url: str,
         payload: Any
     ) -> None:
+        """
+        Test get_json with mocked requests.
+        This method uses parameterized tests to check that the function
+        correctly fetches JSON data from a URL and returns it.
+        It mocks the requests.get method to return a predefined JSON payload.
+        """
         with patch('utils.requests.get') as mock_get:
             mock_get.return_value.json.return_value = payload
             result = get_json(url)
@@ -74,9 +103,22 @@ class TestGetJson(unittest.TestCase):
 
 
 class TestMemoize(unittest.TestCase):
-    """Test cases for memoize decorator."""
+    """
+    Test cases for memoize decorator.
+    This class inherits from unittest.TestCase and tests the memoize
+    decorator to ensure it caches the results of method calls.
+    It checks that the method is only called once and that subsequent calls
+    return the cached result.
+    """
 
     def test_memoize(self) -> None:
+        """
+        Test memoize decorator.
+        This method tests the memoize decorator by defining a class with
+        a method and a property that uses the decorator.
+        It checks that the method is called only once and that the property
+        returns the cached result on subsequent calls.
+        """
         class TestClass:
             def a_method(self):
                 return 42
