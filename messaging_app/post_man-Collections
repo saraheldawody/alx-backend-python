@@ -1,0 +1,275 @@
+{
+  "info": {
+    "name": "Messaging API Collection",
+    "_postman_id": "6adf5f2a-0b4d-4c10-8e16-c3b977b3d1ab",
+    "description": "Collection of requests for testing the Messaging API (JWT Authentication, Conversations, Messages).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "host",
+      "value": "localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "conversation_id",
+      "value": ""
+    },
+    {
+      "key": "message_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Obtain JWT Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"your_username\",\n  \"password\": \"your_password\"\n}"
+        },
+        "url": {
+          "raw": "http://{{host}}/api/auth/token/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "token",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Conversations (Unauthorized)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/api/conversations/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Conversations (Authorized)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://{{host}}/api/conversations/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Conversation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"participants\": [\n    \"<participant_uuid_1>\",\n    \"<participant_uuid_2>\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://{{host}}/api/conversations/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Messages (Unauthorized)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/api/messages/?conversation={{conversation_id}}",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "messages"
+          ],
+          "query": [
+            {
+              "key": "conversation",
+              "value": "{{conversation_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Messages (Authorized)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://{{host}}/api/messages/?conversation={{conversation_id}}",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "messages"
+          ],
+          "query": [
+            {
+              "key": "conversation",
+              "value": "{{conversation_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"conversation\": \"{{conversation_id}}\",\n  \"message_body\": \"Hello from Postman!\"\n}"
+        },
+        "url": {
+          "raw": "http://{{host}}/api/messages/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "messages",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Message",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"conversation\": \"{{conversation_id}}\",\n  \"message_body\": \"Updated message content!\"\n}"
+        },
+        "url": {
+          "raw": "http://{{host}}/api/messages/{{message_id}}/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "messages",
+            "{{message_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Message",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://{{host}}/api/messages/{{message_id}}/",
+          "host": [
+            "http://{{host}}"
+          ],
+          "path": [
+            "api",
+            "messages",
+            "{{message_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
