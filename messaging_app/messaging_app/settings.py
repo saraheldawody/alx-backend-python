@@ -32,15 +32,20 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # … existing Django apps …
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third‐party apps
     'rest_framework',
     'rest_framework_simplejwt',
     "rest_framework_nested",
+
+    # Your chats app
     'chats',
 ]
 AUTH_USER_MODEL = 'chats.User'
@@ -54,8 +59,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-#rest_framework settings
+# REST Framework global settings
 REST_FRAMEWORK = {
+    # Globally require that every request is from an authenticated user
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -63,6 +69,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
+
 
 # Simple JWT settings (customize token lifetimes, etc.)
 SIMPLE_JWT = {

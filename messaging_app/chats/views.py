@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
-from chats.permissions import IsConversationParticipant, IsMessageParticipantOrSender
+from chats.permissions import  IsParticipantOfConversation
 
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
@@ -19,7 +19,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
-    permission_classes = [permissions.IsAuthenticated, IsConversationParticipant]
+    permission_classes = [IsParticipantOfConversation]
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['created_at']
     search_fields = ['conversation_id']
@@ -70,7 +70,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.all().order_by('sent_at')
     serializer_class = MessageSerializer
-    permission_classes = [permissions.IsAuthenticated, IsMessageParticipantOrSender]
+    permission_classes = [IsParticipantOfConversation]
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['sent_at']
     search_fields = ['message_body']
