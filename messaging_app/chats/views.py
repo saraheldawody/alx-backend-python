@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
+from chats.permissions import IsConversationParticipant, IsMessageParticipantOrSender
+
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 
@@ -14,11 +16,11 @@ class ConversationViewSet(viewsets.ModelViewSet):
     ViewSet for listing, retrieving, and creating conversations.
     - Supports filtering (e.g. search, ordering) via DRF filters.
     """
+    
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsConversationParticipant]
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
-    # You can adjust search_fields/ordering_fields as needed; for now, let's allow ordering by created_at:
     ordering_fields = ['created_at']
     search_fields = ['conversation_id']
 
@@ -68,7 +70,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.all().order_by('sent_at')
     serializer_class = MessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsMessageParticipantOrSender]
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['sent_at']
     search_fields = ['message_body']
