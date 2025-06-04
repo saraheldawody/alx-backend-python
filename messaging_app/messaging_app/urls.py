@@ -5,7 +5,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # All chat API routes will live under /api/
     path('api/', include('messaging_app.chats.urls')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
