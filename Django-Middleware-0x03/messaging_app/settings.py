@@ -65,6 +65,8 @@ REST_FRAMEWORK = {
     # Use JWTAuthentication by default
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "rest_framework.authentication.BasicAuthentication", 
+        "rest_framework.authentication.SessionAuthentication"
     ),
     # Require authentication for all endpoints by default
     'DEFAULT_PERMISSION_CLASSES': (
