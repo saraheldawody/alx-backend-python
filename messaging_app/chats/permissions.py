@@ -19,7 +19,8 @@ class IsParticipantOfConversation(permissions.BasePermission):
         - If obj is a Message, ensure request.user is in obj.conversation.participants.
         For unsafe methods on Message (PUT/PATCH/DELETE), we also ensure that only the original sender may modify/delete that message.
         """
-
+        if not request.user.is_authenticated:
+            return False
         # If the view is acting on a Conversation instance
         if isinstance(obj, Conversation):
             return request.user in obj.participants.all()
