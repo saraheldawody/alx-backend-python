@@ -1,44 +1,50 @@
-from datetime import time
-from django.utils import timezone
-from django.http import HttpResponseForbidden
+import time
+from collections import deque, defaultdict
+from django.http import HttpResponseTooManyRequests  # Django ≥4.2
+# For older Django, use:
+# from django.http import HttpResponse
+# HttpResponseTooManyRequests = lambda *args, **kwargs: HttpResponse(status=429)
 
-class RestrictAccessByTimeMiddleware:
+class OffensiveLanguageMiddleware:
     """
-    Deny access to chat-related endpoints outside 18:00–21:00 local server time.
-    Adjust `is_chat_path` logic if your chat URLs differ.
+    Rejects further POST chat messages from an IP if they exceed
+    5 messages within the last 60 seconds.
     """
     def __init__(self, get_response):
         self.get_response = get_response
-        # Define allowed window
-        self.start_time = time(hour=18, minute=0)  # 6PM
-        self.end_time = time(hour=21, minute=0)    # 9PM
+        # map IP -> deque of recent request timestamps
+        self.ip_timestamps = defaultdict(deque)
+        self.rate_limit = 5        # max messages
+        self.window_seconds = 60   # per 60-second window
 
     def __call__(self, request):
-        # Only restrict certain paths; adjust as needed
-        path = request.path
-        if self.is_chat_path(path):
-            # Get current local time (aware)
-            now = timezone.localtime(timezone.now())
-            current_time = now.time()
-            # Allow if within [18:00, 21:00). Deny otherwise.
-            if not (self.start_time <= current_time < self.end_time):
-                return HttpResponseForbidden("Access to chat is allowed only between 18:00 and 21:00.")
-        # Continue normally
-        response = self.get_response(request)
-        return response
+        # Only apply to POST chat-message endpoints; adjust your path as needed
+        if request.method == 'POST' and request.path.startswith('/api/messages/'):
+            ip = self.get_client_ip(request)
+            now = time.time()
+            timestamps = self.ip_timestamps[ip]
 
-    def is_chat_path(self, path: str) -> bool:
+            # Pop timestamps older than window
+            while timestamps and now - timestamps[0] > self.window_seconds:
+                timestamps.popleft()
+
+            if len(timestamps) >= self.rate_limit:
+                return HttpResponseTooManyRequests(
+                    "Rate limit exceeded: max 5 messages per minute."
+                )
+
+            # Record current request
+            timestamps.append(now)
+
+        return self.get_response(request)
+
+    @staticmethod
+    def get_client_ip(request):
         """
-        Determine whether this request should be restricted by time.
-        For example, restrict URLs under /api/messages/ or /api/conversations/.
-        Adjust patterns to fit your routing.
+        Retrieves client IP address accounting for proxies if needed.
         """
-        # Example checks; modify to match your URL patterns:
-        restricted_prefixes = [
-            '/api/messages/',
-            '/api/conversations/',
-            '/chats/',        # if you have chat URLs here
-            '/messages/',
-            '/conversations/',
-        ]
-        return any(path.startswith(prefix) for prefix in restricted_prefixes)
+        xff = request.META.get('HTTP_X_FORWARDED_FOR')
+        if xff:
+            # in case of multiple IPs, take the left-most
+            return xff.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR')
