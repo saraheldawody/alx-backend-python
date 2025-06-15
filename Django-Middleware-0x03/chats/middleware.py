@@ -1,50 +1,68 @@
-import time
-from collections import deque, defaultdict
-from django.http import HttpResponseTooManyRequests  # Django ≥4.2
-# For older Django, use:
-# from django.http import HttpResponse
-# HttpResponseTooManyRequests = lambda *args, **kwargs: HttpResponse(status=429)
+# Django-Middleware-0x03/chats/middleware.py
 
-class OffensiveLanguageMiddleware:
+from django.http import HttpResponseForbidden
+from django.utils.deprecation import MiddlewareMixin
+from django.urls import resolve
+
+class RolepermissionMiddleware(MiddlewareMixin):
     """
-    Rejects further POST chat messages from an IP if they exceed
-    5 messages within the last 60 seconds.
+    Deny access to certain paths/actions if the user is not admin or moderator.
+    Adjust `is_restricted_path` logic to match your URLs or view names.
     """
-    def __init__(self, get_response):
-        self.get_response = get_response
-        # map IP -> deque of recent request timestamps
-        self.ip_timestamps = defaultdict(deque)
-        self.rate_limit = 5        # max messages
-        self.window_seconds = 60   # per 60-second window
 
-    def __call__(self, request):
-        # Only apply to POST chat-message endpoints; adjust your path as needed
-        if request.method == 'POST' and request.path.startswith('/api/messages/'):
-            ip = self.get_client_ip(request)
-            now = time.time()
-            timestamps = self.ip_timestamps[ip]
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        # If you have specific view names or URL prefixes to protect, list them here:
+        # e.g., protect view names: ['delete_message', 'admin_panel']
+        self.protected_view_names = {
+            'delete_message',
+            'admin_only_action',
+            # add more view names that require admin/moderator
+        }
+        # Or protect URL prefixes:
+        self.protected_prefixes = [
+            '/admin/', 
+            '/api/admin/', 
+            '/api/moderator/',
+            # add more prefixes as needed
+        ]
 
-            # Pop timestamps older than window
-            while timestamps and now - timestamps[0] > self.window_seconds:
-                timestamps.popleft()
+    def process_request(self, request):
+        user = request.user
+        # If user is not authenticated, immediately forbid on protected paths
+        path = request.path_info  # e.g., "/api/messages/delete/..."
+        # Check by view name if you prefer:
+        try:
+            match = resolve(path)
+            view_name = match.url_name
+        except Exception:
+            view_name = None
 
-            if len(timestamps) >= self.rate_limit:
-                return HttpResponseTooManyRequests(
-                    "Rate limit exceeded: max 5 messages per minute."
-                )
+        if self.is_restricted(view_name, path):
+            # Check if user is allowed: either a custom role field or Django flags
+            if not user.is_authenticated:
+                return HttpResponseForbidden("Authentication required.")
+            # Example: if you have a 'role' attribute on user:
+            role = getattr(user, 'role', None)
+            if role:
+                allowed = role.lower() in ('admin', 'moderator')
+            else:
+                # fallback to Django staff/superuser
+                allowed = user.is_staff or user.is_superuser
+            if not allowed:
+                return HttpResponseForbidden("You do not have permission to access this resource.")
 
-            # Record current request
-            timestamps.append(now)
+        # Otherwise allow
+        return None  # continue processing
 
-        return self.get_response(request)
-
-    @staticmethod
-    def get_client_ip(request):
+    def is_restricted(self, view_name, path):
         """
-        Retrieves client IP address accounting for proxies if needed.
+        Return True if this request should be checked for admin/moderator.
+        Adjust logic: by view_name or by path prefix.
         """
-        xff = request.META.get('HTTP_X_FORWARDED_FOR')
-        if xff:
-            # in case of multiple IPs, take the left-most
-            return xff.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR')
+        if view_name and view_name in self.protected_view_names:
+            return True
+        for prefix in self.protected_prefixes:
+            if path.startswith(prefix):
+                return True
+        return False

@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 ]
 AUTH_USER_MODEL = 'chats.User'
 MIDDLEWARE = [
-    'chats.middleware.OffensiveLanguageMiddleware',
+    'chats.middleware.RolepermissionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
