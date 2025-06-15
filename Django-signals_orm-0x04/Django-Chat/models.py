@@ -1,23 +1,32 @@
-# Django-Chat/signals.py
+# Django-Chat/Models.py
 
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from .models import Message, MessageHistory
+import uuid
+from django.conf import settings
+from django.db import models
 
-@receiver(pre_save, sender=Message)
-def log_message_edit(sender, instance, **kwargs):
-    if not instance.pk:
-        return  # New message; nothing to track yet
+class Message(models.Model):
+    """
+    Represents a message sent in a chat. 
+    Now includes tracking for edits.
+    """
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    edited = models.BooleanField(default=False)  # Track if message has been edited
 
-    try:
-        previous = Message.objects.get(pk=instance.pk)
-    except Message.DoesNotExist:
-        return  # No existing message; nothing to track
+    def __str__(self):
+        return f"Message {self.message_id} from {self.sender} to {self.receiver}"
 
-    if previous.content != instance.content:
-        # Log the old content
-        MessageHistory.objects.create(
-            message=instance,
-            old_content=previous.content
-        )
-        instance.edited = True
+class MessageHistory(models.Model):
+    """
+    Stores old versions of a message before edits.
+    """
+    history_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.ForeignKey(Message, related_name='history', on_delete=models.CASCADE)
+    old_content = models.TextField()
+    edited_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Edit history of Message {self.message.message_id} at {self.edited_at}"
