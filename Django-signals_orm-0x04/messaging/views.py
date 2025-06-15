@@ -12,8 +12,6 @@ from .models import Message
 
 from .serializers import MessageSerializer
 
-lizer
-
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -85,3 +83,15 @@ def delete_user(request):
     return Response({'detail': 'Your account and related data have been deleted.'}, status=status.HTTP_204_NO_CONTENT)
 
 
+# messaging/views.py
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+
+class UnreadMessagesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        unread_qs = Message.unread.for_user(request.user)
+        serializer = MessageSerializer(unread_qs, many=True)
+        return Response(serializer.data)

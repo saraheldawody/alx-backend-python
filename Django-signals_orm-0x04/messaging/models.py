@@ -4,7 +4,15 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-
+class UnreadMessagesManager(models.Manager):
+    def for_user(self, user):
+        return self.get_queryset().filter(
+            receiver=user,
+            read=False
+        ).select_related('sender', 'receiver').only(
+            'message_id', 'message_body', 'sender__username', 'sent_at'
+        )
+    
 class Message(models.Model):
     """
     Represents a message sent in a chat. 
@@ -23,6 +31,10 @@ class Message(models.Model):
         blank=True,
         related_name='replies'
     )
+    read = models.BooleanField(default=False)
+
+    objects = models.Manager()  # Default manager
+    unread = UnreadMessagesManager()  # Custom manager
     def __str__(self):
         return f"Message {self.message_id} from {self.sender} to {self.receiver}"
 

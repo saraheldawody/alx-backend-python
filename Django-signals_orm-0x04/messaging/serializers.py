@@ -9,9 +9,19 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['message_id', 'receiver', 'content', 'sent_at', 'parent_message']
         read_only_fields = ['message_id', 'sent_at']
-        
+
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['notification_id', 'message', 'is_read', 'created_at']
         read_only_fields = ['notification_id', 'message', 'created_at']
+
+# messaging/serializers.py
+
+class UnreadMessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ['message_id', 'message_body', 'sent_at', 'sender_username']
+
