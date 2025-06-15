@@ -20,7 +20,7 @@ class Message(models.Model):
         on_delete=models.CASCADE
     )
     content = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Message {self.message_id} from {self.sender} to {self.receiver}"
