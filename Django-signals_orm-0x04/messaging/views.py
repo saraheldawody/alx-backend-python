@@ -5,6 +5,36 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Notification
 from .serializers import NotificationSerializer
+from django.contrib.auth import get_user_model
+User = get_user_model()
+from django.shortcuts import get_object_or_404
+from .models import Message
+
+from .serializers import MessageSerializer
+
+class MessageViewSet(viewsets.ModelViewSet):
+    queryset = Message.objects.all().order_by('sent_at')
+    serializer_class = MessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        receiver_id = request.data.get("receiver")
+        if not receiver_id:
+            return Response({"detail": "Receiver ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            receiver = User.objects.get(pk=receiver_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Receiver does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(sender=request.user, receiver=receiver)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
