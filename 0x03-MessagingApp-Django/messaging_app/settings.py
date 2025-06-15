@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 ]
 AUTH_USER_MODEL = 'chats.User'
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    'chats.middleware.RestrictAccessByTimeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
