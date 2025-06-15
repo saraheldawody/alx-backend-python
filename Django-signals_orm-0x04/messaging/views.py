@@ -4,7 +4,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Notification
-from .serializers import NotificationSerializer
+from .serializers import NotificationSerializer, UnreadMessageSerializer
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from django.shortcuts import get_object_or_404
@@ -92,6 +92,9 @@ class UnreadMessagesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        unread_qs = Message.unread.for_user(request.user)
-        serializer = MessageSerializer(unread_qs, many=True)
+        # Explicitly apply `.only()` in views.py
+        unread_messages = Message.unread.unread_for_user(request.user).only(
+            'message_id', 'message_body', 'sent_at', 'sender__username'
+        )
+        serializer = UnreadMessageSerializer(unread_messages, many=True)
         return Response(serializer.data)
