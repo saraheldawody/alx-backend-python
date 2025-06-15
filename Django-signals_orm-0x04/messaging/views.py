@@ -12,10 +12,23 @@ from .models import Message
 
 from .serializers import MessageSerializer
 
+lizer
+
 class MessageViewSet(viewsets.ModelViewSet):
-    queryset = Message.objects.all().order_by('sent_at')
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Return messages involving the current user as sender or receiver.
+        Use select_related for efficiency.
+        """
+        user = self.request.user
+        return (
+            Message.objects.filter(sender=user) | Message.objects.filter(receiver=user)
+        ).select_related('sender', 'receiver', 'parent_message') \
+         .prefetch_related('replies') \
+         .order_by('sent_at')
 
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user)
@@ -34,7 +47,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(sender=request.user, receiver=receiver)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
