@@ -82,10 +82,12 @@ class MessageViewSet(viewsets.ModelViewSet):
         Optionally filter messages by conversation_id query parameter.
         e.g. GET /messages/?conversation=<conversation_id>
         """
+        if not self.request.user.is_authenticated:
+            return Message.objects.none()
         qs = super().get_queryset()
         conv_id = self.request.query_params.get('conversation')
         if conv_id:
-            qs = qs.filter(conversation__conversation_id=conv_id)
+            qs = Message.objects.filter(conversation__conversation_id=conv_id).order_by('sent_at')
         return qs
 
     def perform_create(self, serializer):
